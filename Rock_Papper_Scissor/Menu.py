@@ -1,3 +1,5 @@
+from os import system
+
 from SingletonDecorator import singleton
 import GlobalConstants
 
@@ -39,6 +41,8 @@ class MainMenu():
     """
     Метод получения поля с выводом текста на экран 
     """
+    # Очищаем экран перед выводом меню
+    system("cls || clear")
     print(self.__text_menu)
   
   def ChoicePlayer(self, num: int):
@@ -100,6 +104,8 @@ class ChoiceMenu():
     """
     Метод получения поля с выводом текста на экран 
     """
+    # Очищаем экран перед выводом меню
+    system("cls || clear")
     print(self.__text_menu)
 
   def ChoicePlayer(self, num: int):

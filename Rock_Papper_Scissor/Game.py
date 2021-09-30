@@ -1,4 +1,5 @@
 from random import randint
+from os import system
 
 import Menu
 import GlobalConstants
@@ -102,8 +103,10 @@ class Game():
     """
     name_weap_player   = self.__ComparisonChoices(choice_player)
     name_weap_opponent = self.__ComparisonChoices(choice_opponent)
+    # Очищаем экран перед выводом
+    system("cls || clear")
     print(f"Игрок выбрал оружие: {name_weap_player.lower()}")
-    print(f"Оппонент выбрал оружие: {name_weap_opponent.lower()}")
+    print(f"Оппонент выбрал оружие: {name_weap_opponent.lower()}\n")
 
   def __DeterminWinner(self, choice_player, choice_opponent):
     """
@@ -151,11 +154,11 @@ class Game():
       # result - Результат партии
     """ 
     if (result == GlobalConstants.DRAW):
-      print("Ничья!")
+      print("Ничья!\n")
     elif (result == GlobalConstants.WIN_PLAYER):
-      print(f"Победил игрок {self.__cur_player.GetName()}")
+      print(f"Победил игрок {self.__cur_player.GetName()}\n")
     elif (result == GlobalConstants.WIN_OPPONENT):
-      print("Победил бот!")
+      print("Победил бот!\n")
 
   def __PlayGame(self):
     """
@@ -178,6 +181,8 @@ class Game():
     """
     Конструктор класса с игрой
     """
+    # Очищаем экран перед запуском игры
+    system("cls || clear")
     # Выводим надпись, о том что пользователь запустил игру.
     print("Вы запустили игру \"Камень-Ножницы-Бумага\"")
   
@@ -218,8 +223,10 @@ class Game():
 
       elif (choice_menu_player == GlobalConstants.EXIT_GAME):
         f_game = False
+        # Очищаем экран перед выводом
+        system("cls || clear")
         str_output  = "Спасибо за игру. Ваш процент выйгрышей составил: "
-        str_output += str(self.__cur_player.GetWinningPercentage())
+        str_output += str(round(self.__cur_player.GetWinningPercentage(), GlobalConstants.PREC_DISP_RES_WINS))
         str_output += "%. Всего доброго!"
         print(str_output)
 
