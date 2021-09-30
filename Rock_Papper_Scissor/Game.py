@@ -1,4 +1,4 @@
-from random import randint
+from random import choice, randint
 from os import system
 
 import Menu
@@ -17,6 +17,7 @@ class Game():
     # main_menu   - объект с главным меню игры
     # end_menu    - объект с меню после партии
     # choice_menu - объект с меню для выбора оружия
+    # result_menu - объект с меню для просмотра кол-ва побед/поражений/ничьих игрока
   """
 
   # Приватные методы
@@ -33,6 +34,8 @@ class Game():
     """
     menu.PrintMenu()
     in_choice_menu_player = int(input())
+    # Очищаем экран для того, чтобы следующее меню было выведено на пустой экран
+    system("cls || clear")
     choice_menu_player = menu.ChoicePlayer(in_choice_menu_player)
     return choice_menu_player
 
@@ -59,7 +62,7 @@ class Game():
       if (choice_menu_player != None):
         f_menu = False
       else:
-        print("Вы ввели значение не из меню. Проверьте правильность ввода!")
+        print("Вы ввели значение не из меню. Проверьте правильность ввода!\n")
     return choice_menu_player  
 
   def __OpponentChoice(self):
@@ -164,7 +167,7 @@ class Game():
     """
     Метод, который описывает саму игру
     """
-    print(f"{self.__cur_player.GetName()} выберите пожалуйста оружие.")
+    print(f"{self.__cur_player.GetName()} выберите пожалуйста оружие.\n")
     # Игрок выбрал свое оружие
     choice_player = self.__ChoicePlayerInMenu(self.__choice_menu)
     # Противник выбирает свое оружие
@@ -174,6 +177,32 @@ class Game():
     # Определение победителя
     result = self.__DeterminWinner(choice_player, choice_opponent)
     self.__PrintWinner(result)
+
+  def __PrintResultPlayer(self, choice_player):
+    """
+    Метод вывода на экран значение с результатами игрока 
+    (кол-во побед/поражений/ничьих)
+
+    Вх. аргументы: 
+      # choice_player - Выбор игрока из меню с результатами
+    """
+    # Количество сыгранных игр пользователем
+    count_games = self.__cur_player.GetCountGames() 
+    # Строка для вывода на экран
+    str = f"Вы сыграли {count_games} партий " 
+    if (choice_player == GlobalConstants.CHECK_COUNT_WINS):
+      res = self.__cur_player.GetWins()
+      str += f"из них кол-во побед {res}."
+    elif (choice_player == GlobalConstants.CHECK_COUNT_PROC_WINS):
+      res = self.__cur_player.GetWinningPercentage()
+      str += f"количество побед составляет {res}%."
+    elif (choice_player == GlobalConstants.CHECK_COUNT_LOSES):
+      res = self.__cur_player.GetLoses()
+      str += f"из них кол-во поражений {res}."
+    elif (choice_player == GlobalConstants.CHECK_COUNT_DRAW):
+      res = self.__cur_player.GetDraws()
+      str += f"из них кол-во ничьих {res}."
+    print(str + "\n")
     
   # Конструкторы
 
@@ -190,10 +219,14 @@ class Game():
     name = input("Представтесь: ")
     self.__cur_player = Player(name)
 
+    # Очищаем экран, чтобы следующее меню было выведено на пустой экран
+    system("cls || clear")
+
     # Создаем объекты меню для игры
     self.__main_menu   = Menu.MainMenu()
     self.__end_menu    = Menu.EndMenu()
     self.__choice_menu = Menu.ChoiceMenu()
+    self.__result_menu = Menu.ResultMenu()
 
   # Методы
 
@@ -216,6 +249,24 @@ class Game():
         while (f_cont_game):
           self.__PlayGame()
           choice_menu_player = self.__ChoicePlayerInMenu(self.__end_menu)
+          # Если пользователь выбрал меню просмотр результатов, то выводим меню
+          # и ждем его выброр, зависимости от выбора выводим на экран результаты
+          if (choice_menu_player == GlobalConstants.RESULT_PLAYER):
+            # Флаг, определяющий хочет ли пользователь находитсяв меню
+            # с результатами или нет
+            f_result = True 
+            while (f_result):
+              choice_menu_player = self.__ChoicePlayerInMenu(self.__result_menu)
+              # Если пользователь выбрал продолжить игру или выйти в главное меню,
+              # то заканчиваем цикл и идем в соот. с выбором пользователя
+              if ((choice_menu_player == GlobalConstants.CONTINUE_GAME) or
+                 (choice_menu_player == GlobalConstants.END_GAME)):
+                f_result = False
+              else:
+                # Если игрок выбрал один из пунктов печати результата, то
+                # вызываем соот. метод
+                self.__PrintResultPlayer(choice_menu_player)
+
           # Если игрок выбор выйти в главное меню, то флаг продолжения игры
           # устанавливается в False и игра выходит в главное меню
           if (choice_menu_player == GlobalConstants.END_GAME):

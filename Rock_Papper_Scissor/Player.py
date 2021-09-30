@@ -8,7 +8,6 @@ class Player():
     # count_win  - Кол-во побед в игре
     # count_lose - Кол-во поражений в игре 
   """
-
   def __init__(self, name: str):
     """
     Конструктор класса игрока.
@@ -54,15 +53,15 @@ class Player():
 
     output = 0
     # Если делить без условия, то может возникнуть ситуация деления 0 на 0
-    if ((self.__count_lose != 0)  or 
-        (self.__count_win  != 0)  or 
-        (self.__count_draw != 0)):
-
-      output = self.__count_win/(self.__count_lose 
-                            + self.__count_win
-                            + self.__count_draw
-                            )*100
+    if (self.GetCountGames() != 0):
+      output = self.__count_win/(self.GetCountGames())*100
     return output
+
+  def GetCountGames(self):
+    """
+    Метод подсчета количества игр, которые сыграл пользователь
+    """
+    return (self.__count_lose + self.__count_win + self.__count_draw)
 
   # Методы инкрементирующие поля
   

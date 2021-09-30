@@ -1,5 +1,3 @@
-from os import system
-
 from SingletonDecorator import singleton
 import GlobalConstants
 
@@ -41,8 +39,6 @@ class MainMenu():
     """
     Метод получения поля с выводом текста на экран 
     """
-    # Очищаем экран перед выводом меню
-    system("cls || clear")
     print(self.__text_menu)
   
   def ChoicePlayer(self, num: int):
@@ -104,8 +100,6 @@ class ChoiceMenu():
     """
     Метод получения поля с выводом текста на экран 
     """
-    # Очищаем экран перед выводом меню
-    system("cls || clear")
     print(self.__text_menu)
 
   def ChoicePlayer(self, num: int):
@@ -144,12 +138,14 @@ class EndMenu():
     # Тексты к соот. пунктам меню
     str_0 = "Выберите один из пунктов ниже: "
     str_1 = "Продолжить игру (начать следующую партию)"
-    str_2 = "Закончить игру (выйти в главное меню)"
-    all_str_list = [str_1, str_2]
+    str_2 = "Просмотр результатов"
+    str_3 = "Закончить игру (выйти в главное меню)"
+    all_str_list = [str_1, str_2, str_3]
 
     # Формируем лист с необходимыми глобальными констанатми
     nums = list(range(0, len(all_str_list)+1))
-    data = [GlobalConstants.CONTINUE_GAME, GlobalConstants.END_GAME]
+    data = [GlobalConstants.CONTINUE_GAME, GlobalConstants.RESULT_PLAYER
+           ,GlobalConstants.END_GAME]
 
     self.__dic_menu = {}
     self.__text_menu = str_0 + "\n"
@@ -180,8 +176,75 @@ class EndMenu():
 
     Вых. параметры:
       # output - None           = если пользователь ввел не правильное значение
-                 CONTUNIUE_GAME = если пользователь выборал полжить игру
-                 END_GAME       = если пользователь выборал выйти в глав. меню
+                 CONTUNIUE_GAME = если пользователь выбрал продолжить игру
+                 END_GAME       = если пользователь выбрал выйти в глав. меню
+    """
+    # Если метод "get" вернул None, то пользователь ввел не правильно
+    output = self.__dic_menu.get(num)
+    return output
+
+@singleton
+class ResultMenu():
+  """
+   Данный класс предоставляет меню выбора просмотра результатов игрока
+
+  Поля класса:
+    # text_menu - Текст, который выводится на экран при вызове соот. метода
+    # dic_menu  - Сопоставление поряд. номера и ид. Для выборов от пользователя
+  """
+
+  def __init__(self):
+    """
+    Конструктор класса
+    """
+    # Тексты к соот. пунктам меню
+    str_0 = "Выберите один из пунктов ниже: "
+    str_1 = "Посмотреть количество побед"
+    str_2 = "Посмотреть процент побед"
+    str_3 = "Посмотреть количество поражений"
+    str_4 = "Посмотреть количество ничьих"
+    str_5 = "Продолжить игру"
+    str_6 = "Закончить игру (выйти в главное меню)"
+    all_str_list = [str_1, str_2, str_3, str_4, str_5, str_6]
+
+    # Формируем лист с необходимыми глобальными констанатми
+    nums = list(range(0, len(all_str_list)+1))
+    data = [GlobalConstants.CHECK_COUNT_WINS , GlobalConstants.CHECK_COUNT_PROC_WINS
+           ,GlobalConstants.CHECK_COUNT_LOSES, GlobalConstants.CHECK_COUNT_DRAW
+           ,GlobalConstants.CONTINUE_GAME, GlobalConstants.END_GAME]
+
+    self.__dic_menu = {}
+    self.__text_menu = str_0 + "\n"
+
+    ind_num = 0
+    for text_str in all_str_list:
+      # Формирование строки вывода на экран
+      self.__text_menu += f"{nums[ind_num]}. {text_str}\n"
+      # Формирование слорвая
+      self.__dic_menu[ind_num] = data[ind_num]
+      ind_num += 1
+
+  # Методы
+
+  def PrintMenu(self):
+    """
+    Метод получения поля с выводом текста на экран 
+    """
+    print(self.__text_menu)
+
+  def ChoicePlayer(self, num: int):
+    """
+    Данный метод проверяет выбор игрока. Если выбор игрока был произведен не
+    правильно (не из меню), то метод вернет None.
+
+    Вх. параметры:
+      # num - Выбор пользователя
+
+    Вых. параметры:
+      # output - CHECK_COUNT_WINS      =  если пользователь выбрал просмотр кол-ва выйгр. 
+      #          CHECK_COUNT_PROC_WINS =  если пользователь выбрал просмотр проц. выйгр
+      #          CHECK_COUNT_LOSES     =  если пользователь выбрал просмотр кол-ва пройгр.
+      #          CHECK_COUNT_DRAW      =  если пользователь выбрал просмотр кол-ва ничьих
     """
     # Если метод "get" вернул None, то пользователь ввел не правильно
     output = self.__dic_menu.get(num)
