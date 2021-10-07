@@ -280,6 +280,9 @@ class Game():
         str_output += str(round(self.__cur_player.GetWinningPercentage(), GlobalConstants.PREC_DISP_RES_WINS))
         str_output += "%. Всего доброго!"
         print(str_output)
+        
+        # Сохраняем результаты игрока
+        self.__cur_player.SaveResultToFile()
 
 
     
