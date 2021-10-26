@@ -37,7 +37,9 @@ class Weapon():
     Перегрузка оператора >
     """
     output = False
-    if (self.__num > other.GetNum()):
+    if (other is None):
+      output = False
+    elif (self.__num > other.GetNum()):
       output = True
     return output
 
@@ -46,6 +48,8 @@ class Weapon():
     Перегрузка оператора <
     """
     output = False
-    if (self.__num < other.GetNum()):
+    if (other is None):
+      output = False
+    elif (self.__num < other.GetNum()):
       output = True
     return output
