@@ -2,7 +2,7 @@ import json
 from json.decoder import JSONDecodeError
 from os import stat, path
 
-import GlobalConstants
+from Rock_Papper_Scissor import GlobalConstants
 
 class Player():
   """
