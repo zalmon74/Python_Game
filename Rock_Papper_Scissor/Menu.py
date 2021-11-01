@@ -1,4 +1,4 @@
-import GlobalConstants
+from Rock_Papper_Scissor import GlobalConstants
 
 class Menu():
   """
