@@ -1,3 +1,6 @@
+from sys import path
+
+path.insert(0, "./")
 from Rock_Papper_Scissor import Weapon
 
 START_GAME = 0 # Константа, отвечающая за начало игры

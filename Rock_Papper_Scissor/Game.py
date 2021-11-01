@@ -223,10 +223,10 @@ class Game():
     system("cls || clear")
 
     # Создаем объекты меню для игры
-    self.__main_menu   = Menu.MainMenu()
-    self.__end_menu    = Menu.EndMenu()
-    self.__choice_menu = Menu.ChoiceMenu()
-    self.__result_menu = Menu.ResultMenu()
+    self.__main_menu   = Menu.formation_main_menu()
+    self.__end_menu    = Menu.formation_end_menu()
+    self.__choice_menu = Menu.formation_choice_menu()
+    self.__result_menu = Menu.formation_result_menu()
 
   # Методы
 
