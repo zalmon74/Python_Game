@@ -1,9 +1,12 @@
 from random import choice, randint
 from os import system
+from time import sleep
+import socket
 
 import Menu
 import GlobalConstants
 from Player import Player
+from Rock_Papper_Scissor.Weapon import Weapon
 from SingletonDecorator import singleton
 
 @singleton
@@ -21,6 +24,22 @@ class Game():
   """
 
   # Приватные методы
+  @staticmethod
+  def __InputValue(text = ""):
+    """
+    Метод, который ожидает, что пользователь введет число, если пользователь
+    ввел не число, он перезапрашивает ввод, пока пользователь не введет число.
+    """
+    f_right = False
+    while (not f_right):
+      try:
+        value = int(input(text))
+      except ValueError:
+        print("Вы ввели не число. Попробуйте еще раз!\n")
+      else:
+        f_right = True
+    return value
+
 
   def __ChoicePlayer(self, menu):
     """
@@ -33,7 +52,7 @@ class Game():
       # output - Выбор игрока или None (если выбор был не верен)
     """
     menu.PrintMenu()
-    in_choice_menu_player = int(input())
+    in_choice_menu_player = self.__InputValue()
     # Очищаем экран для того, чтобы следующее меню было выведено на пустой экран
     system("cls || clear")
     choice_menu_player = menu.ChoicePlayer(in_choice_menu_player)
@@ -159,11 +178,11 @@ class Game():
     if (result == GlobalConstants.DRAW):
       print("Ничья!\n")
     elif (result == GlobalConstants.WIN_PLAYER):
-      print(f"Победил игрок {self.__cur_player.GetName()}\n")
+      print(f"Вы победили!\n")
     elif (result == GlobalConstants.WIN_OPPONENT):
-      print("Победил бот!\n")
+      print("Вы проиграли!\n")
 
-  def __PlayGame(self):
+  def __PlayGameWithBot(self):
     """
     Метод, который описывает саму игру
     """
@@ -173,6 +192,28 @@ class Game():
     # Противник выбирает свое оружие
     choice_opponent = self.__OpponentChoice()
     # Вывод на экран выборы игрока и оппонента (бота)
+    self.__PrintChoicePlayers(choice_player, choice_opponent)
+    # Определение победителя
+    result = self.__DeterminWinner(choice_player, choice_opponent)
+    self.__PrintWinner(result)
+
+  def __PlayLocalGame(self, obj_socket: socket.socket):
+    """
+    Метод, который описывает саму игру
+    """
+    print(f"{self.__cur_player.GetName()} выберите пожалуйста оружие.\n")
+    # Игрок выбрал свое оружие
+    choice_player = self.__ChoicePlayerInMenu(self.__choice_menu)
+    choice_player = str(choice_player.GetNum()).encode()
+    # Отправляем выбранное оружие второму игроку
+    obj_socket.send(choice_player)
+    print("\n Ожидаем выбор оружия второго игрока\n")
+    # Ожидаем выбор оружия от второго игрока
+    choice_opponent = obj_socket.recv(GlobalConstants.BUF_SIZE_SOCKET) 
+    # Переформируем полученный ответ в объект
+    choice_player = Weapon(int(choice_player.decode()))
+    choice_opponent = Weapon(int(choice_opponent.decode()))
+    # Вывод на экран выбора игрока и оппонента 
     self.__PrintChoicePlayers(choice_player, choice_opponent)
     # Определение победителя
     result = self.__DeterminWinner(choice_player, choice_opponent)
@@ -203,6 +244,109 @@ class Game():
       res = self.__cur_player.GetDraws()
       str += f"из них кол-во ничьих {res}."
     print(str + "\n")
+
+  def __ServerGamePlayer(self):
+    """
+    Метод, который описывает сервер в игре при локальной сети.
+    """
+    # Запрашиваем порт сервера
+    port = self.__InputValue("Введите порт сервера: ")
+    # Создаем сокет
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Устанавливаем время подключения
+    server_socket.settimeout(GlobalConstants.TIMEOUT_LOCAL_GAME)
+    # Связываем сокет с портом
+    server_socket.bind(("", port))
+    # Устанавливаем максимальное количество клиентов
+    server_socket.listen(1)
+    # Очищаем экран перед выводом
+    system("cls || clear")
+    print("Ожидаем подключение игрока\n")
+    # Ожидаем подключение клиента
+    try:
+      connection_socket, address_client = server_socket.accept()
+    except socket.timeout: # Если время подключения истекло
+      print("\nВремя подключения истекло")
+      sleep(2)
+      # Очищаем экран
+      system("cls || clear")
+      server_socket.close()
+      return
+    # Запускаем непрерывную игру (пока пользователь не выйдет в главное меню)
+    try:
+      self.__PlayInfLocalGame(connection_socket)
+    except ConnectionAbortedError:
+      print("Второй игрок вышел из игры!")
+      sleep(2)
+      # Очищаем экран
+      system("cls || clear")
+    connection_socket.close()
+    server_socket.close()
+    
+  def __ClientGamePlayer(self):
+    """
+    Метод, который описывает клиента в игре при локальной сети.
+    """
+    # Запрашиваем ip-сервера
+    ip_server = input("Введите ip сервера: ")
+    # Запрашиваем порт сервера
+    port = self.__InputValue("Введите порт сервера: ")
+    # Создаем сокет
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Устанавливаем время подключения
+    client_socket.settimeout(GlobalConstants.TIMEOUT_LOCAL_GAME)
+    # Очищаем экран перед выводом
+    system("cls || clear")
+    print("Ожидаем подключение к серверу\n")
+    # Подключаемся к серверу
+    try:
+      client_socket.connect((ip_server, port))
+    except socket.gaierror: # Если время подключения истекло
+      print("\nТакого сервера не существует")
+      sleep(2)
+      # Очищаем экран
+      system("cls || clear")
+      client_socket.close()
+      return  
+    # Запускаем непрерывную игру (пока пользователь не выйдет в главное меню)
+    try:
+      self.__PlayInfLocalGame(client_socket)
+    except ConnectionAbortedError:
+      print("Второй игрок вышел из игры!")
+      sleep(2)
+      # Очищаем экран
+      system("cls || clear")
+    client_socket.close()
+
+  def __PlayInfLocalGame(self, obj_socket: socket.socket):
+    """
+    Метод для непрерыввной игры по локальной сети. 
+    """
+    f_cont_game = True # Флаг продолжения игры
+    while (f_cont_game):
+      self.__PlayLocalGame(obj_socket) 
+      choice_menu_player = self.__ChoicePlayerInMenu(self.__end_menu)
+      # Если пользователь выбрал меню просмотр результатов, то выводим меню
+      # и ждем его выброр, зависимости от выбора выводим на экран результаты
+      if (choice_menu_player == GlobalConstants.RESULT_PLAYER):
+        # Флаг, определяющий хочет ли пользователь находитсяв меню
+        # с результатами или нет
+        f_result = True 
+        while (f_result):
+          choice_menu_player = self.__ChoicePlayerInMenu(self.__result_menu)
+          # Если пользователь выбрал продолжить игру или выйти в главное меню,
+          # то заканчиваем цикл и идем в соот. с выбором пользователя
+          if ((choice_menu_player == GlobalConstants.CONTINUE_GAME) or
+              (choice_menu_player == GlobalConstants.END_GAME)):
+            f_result = False
+          else:
+            # Если игрок выбрал один из пунктов печати результата, то
+            # вызываем соот. метод
+            self.__PrintResultPlayer(choice_menu_player)
+      # Если игрок выбор выйти в главное меню, то флаг продолжения игры
+      # устанавливается в False и игра выходит в главное меню
+      if (choice_menu_player == GlobalConstants.END_GAME):
+        f_cont_game = False
     
   # Конструкторы
 
@@ -223,10 +367,11 @@ class Game():
     system("cls || clear")
 
     # Создаем объекты меню для игры
-    self.__main_menu   = Menu.formation_main_menu()
-    self.__end_menu    = Menu.formation_end_menu()
-    self.__choice_menu = Menu.formation_choice_menu()
-    self.__result_menu = Menu.formation_result_menu()
+    self.__main_menu       = Menu.formation_main_menu()
+    self.__local_game_menu = Menu.formation_local_game_menu()
+    self.__end_menu        = Menu.formation_end_menu()
+    self.__choice_menu     = Menu.formation_choice_menu()
+    self.__result_menu     = Menu.formation_result_menu()
 
   # Методы
 
@@ -247,7 +392,7 @@ class Game():
       if (choice_menu_player == GlobalConstants.START_GAME):
         f_cont_game = True # Флаг продолжения игры
         while (f_cont_game):
-          self.__PlayGame()
+          self.__PlayGameWithBot()
           choice_menu_player = self.__ChoicePlayerInMenu(self.__end_menu)
           # Если пользователь выбрал меню просмотр результатов, то выводим меню
           # и ждем его выброр, зависимости от выбора выводим на экран результаты
@@ -266,12 +411,19 @@ class Game():
                 # Если игрок выбрал один из пунктов печати результата, то
                 # вызываем соот. метод
                 self.__PrintResultPlayer(choice_menu_player)
-
           # Если игрок выбор выйти в главное меню, то флаг продолжения игры
           # устанавливается в False и игра выходит в главное меню
           if (choice_menu_player == GlobalConstants.END_GAME):
             f_cont_game = False
-
+      # Выбор игры по локальной сети      
+      elif (choice_menu_player == GlobalConstants.START_LOCAL_GAME):
+        # Ожидаем выбор игрока
+        choice_menu_player = self.__ChoicePlayerInMenu(self.__local_game_menu)
+        if (choice_menu_player == GlobalConstants.CREATE_LOCAL_GAME):
+          self.__ServerGamePlayer()
+        elif (choice_menu_player == GlobalConstants.CONNECTION_LOCAL_GAME):
+          self.__ClientGamePlayer()        
+      # Выбор выхода из игры
       elif (choice_menu_player == GlobalConstants.EXIT_GAME):
         f_game = False
         # Очищаем экран перед выводом

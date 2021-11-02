@@ -1,3 +1,6 @@
+from sys import path
+
+path.insert(0, "./")
 from Rock_Papper_Scissor import GlobalConstants
 
 class Menu():
@@ -62,10 +65,25 @@ def formation_main_menu():
   """
   # Тексты к соот. пунктам меню
   str_1 = "Начать игру против компьютера"
-  str_2 = "Выйти из игры"
-  all_str_list = [str_1, str_2]
+  str_2 = "Начать игру по локальной сети"
+  str_3 = "Выйти из игры"
+  all_str_list = [str_1, str_2, str_3]
   # Формируем лист с необходимыми глобальными констанатми
-  data = [GlobalConstants.START_GAME, GlobalConstants.EXIT_GAME]
+  data = [GlobalConstants.START_GAME, GlobalConstants.START_LOCAL_GAME
+         ,GlobalConstants.EXIT_GAME]
+  return Menu(all_str_list, data)
+
+def formation_local_game_menu():
+  """
+  Функция создания объекта с меню игры по локальной сети
+  """
+  str_1 = "Создать игру"
+  str_2 = "Подключиться к игре"
+  str_3 = "Выйти в главное меню"
+  all_str_list = [str_1, str_2, str_3]
+  # Формируем лист с необходимыми глобальными констанатми
+  data = [GlobalConstants.CREATE_LOCAL_GAME, GlobalConstants.CONNECTION_LOCAL_GAME
+         ,GlobalConstants.EXIT_GAME]
   return Menu(all_str_list, data)
 
 def formation_choice_menu():
